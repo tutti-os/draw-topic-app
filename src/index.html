@@ -25,6 +25,16 @@
         <form class="prompt-bar" id="prompt-form">
           <input id="question-input" autocomplete="off" data-i18n-placeholder="app.placeholder" />
           <div class="prompt-actions">
+            <div class="provider-picker" id="provider-picker" hidden>
+              <button
+                class="provider-trigger"
+                id="provider-trigger"
+                type="button"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+              ></button>
+              <div class="provider-menu" id="provider-menu" role="listbox" hidden></div>
+            </div>
             <button id="draw-button" type="submit" data-i18n="app.draw"></button>
           </div>
         </form>

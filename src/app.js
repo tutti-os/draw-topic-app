@@ -3,7 +3,7 @@ const supportedLocales = ["en", "zh-CN"];
 const choices = ["A", "B", "C", "D", "E"];
 const wheelStepDeg = 360 / choices.length;
 const minDealMs = 3000;
-const drawRequestTimeoutMs = 30000;
+const drawRequestTimeoutMs = 210000;
 const dealingHintRotationMs = 5000;
 const dealingLateHintDelayMs = 10000;
 const dealStartSpeedDegPerMs = 0.08;
@@ -517,16 +517,23 @@ let pinnedChoice = "";
 let selectedDealingHint = "";
 let dealingHintRotationId = 0;
 let dealingHintStartedAt = 0;
+let providerOptions = [];
+let selectedProviderId = "";
+let providerMenuOpen = false;
 
 const elements = {
   table: document.querySelector("#card-table"),
   title: document.querySelector("title"),
   form: document.querySelector("#prompt-form"),
+  actions: document.querySelector(".prompt-actions"),
   input: document.querySelector("#question-input"),
   button: document.querySelector("#draw-button"),
   quickRedrawButton: document.querySelector("#quick-redraw-button"),
   status: document.querySelector("#draw-status"),
   statusText: document.querySelector("#draw-status-text"),
+  providerPicker: document.querySelector("#provider-picker"),
+  providerTrigger: document.querySelector("#provider-trigger"),
+  providerMenu: document.querySelector("#provider-menu"),
   cards: Object.fromEntries(
     choices.map((choice) => [choice, document.querySelector(`[data-choice="${choice}"]`)]),
   ),
@@ -535,6 +542,7 @@ const elements = {
 await loadMessages();
 locale = normalizeLocale(await detectLocale());
 document.documentElement.lang = locale;
+await loadProviders();
 currentAnswers = buildFallbackAnswers("");
 bindEvents();
 render();
@@ -576,6 +584,55 @@ function bindEvents() {
     await deal(currentQuestion);
   });
 
+  elements.providerTrigger.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (stage === "dealing" || providerOptions.length === 0) return;
+    providerMenuOpen = !providerMenuOpen;
+    renderProviders();
+  });
+
+  elements.providerTrigger.addEventListener("keydown", (event) => {
+    if (!["Enter", " ", "ArrowDown"].includes(event.key)) return;
+    event.preventDefault();
+    if (stage === "dealing" || providerOptions.length === 0) return;
+    providerMenuOpen = true;
+    renderProviders();
+    elements.providerMenu.querySelector('[role="option"]')?.focus();
+  });
+
+  elements.providerMenu.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const option =
+      event.target instanceof Element ? event.target.closest("[data-provider-id]") : null;
+    if (!option) return;
+    selectedProviderId = option.dataset.providerId || "";
+    providerMenuOpen = false;
+    renderProviders();
+  });
+
+  elements.providerMenu.addEventListener("keydown", (event) => {
+    const options = Array.from(elements.providerMenu.querySelectorAll('[role="option"]'));
+    const currentIndex = options.indexOf(document.activeElement);
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      closeProviderMenu();
+      elements.providerTrigger.focus();
+    } else if (event.key === "ArrowDown") {
+      event.preventDefault();
+      event.stopPropagation();
+      options[(currentIndex + 1) % options.length]?.focus();
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      event.stopPropagation();
+      options[(currentIndex - 1 + options.length) % options.length]?.focus();
+    }
+  });
+
+  document.addEventListener("click", () => {
+    closeProviderMenu();
+  });
+
   for (const choice of choices) {
     elements.cards[choice].addEventListener("click", () => {
       if (!["idle", "ready"].includes(stage)) return;
@@ -592,6 +649,11 @@ function bindEvents() {
   }
 
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && providerMenuOpen) {
+      event.preventDefault();
+      closeProviderMenu();
+      return;
+    }
     if (event.key === "Escape") reset();
     if (stage === "ready" && ["ArrowLeft", "ArrowRight"].includes(event.key)) {
       const currentIndex = choices.indexOf(activeChoice);
@@ -635,6 +697,7 @@ async function deal(requestedQuestion = elements.input.value.trim()) {
       winningChoice = pickWinningChoice(`${question}:${JSON.stringify(payload.cards)}`);
       writeHostLog("draw-topic-app.agent_cards", {
         source: payload.source || "unknown",
+        provider: payload.provider || "",
         fallback: payload.source === "local-fallback",
         fallbackReason: payload.fallbackReason || "",
         count: payload.cards.length,
@@ -795,7 +858,7 @@ async function fetchCards(question) {
     const response = await fetch("/api/draw", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, locale }),
+      body: JSON.stringify({ question, locale, provider: selectedProviderId }),
       signal: controller.signal,
     });
     if (!response.ok) throw new Error(`Draw request failed with ${response.status}`);
@@ -805,6 +868,71 @@ async function fetchCards(question) {
   } finally {
     window.clearTimeout(timeoutId);
   }
+}
+
+async function loadProviders() {
+  try {
+    const response = await fetch("/api/providers");
+    if (!response.ok) throw new Error(`Provider request failed with ${response.status}`);
+    const payload = await response.json();
+    providerOptions = Array.isArray(payload.providers)
+      ? payload.providers.filter((provider) => provider.available)
+      : [];
+    selectedProviderId =
+      providerOptions.find((provider) => provider.id === payload.defaultProvider)?.id ||
+      providerOptions[0]?.id ||
+      "";
+  } catch (error) {
+    providerOptions = [];
+    selectedProviderId = "";
+    writeHostLog("draw-topic-app.providers_failed", { message: String(error) });
+  }
+  renderProviders();
+}
+
+function renderProviders() {
+  if (stage === "dealing") providerMenuOpen = false;
+  const selectedProvider = currentProvider();
+  const hasProviders = providerOptions.length > 0;
+  elements.actions.classList.toggle("has-provider-picker", hasProviders);
+  elements.providerPicker.hidden = !hasProviders;
+  elements.providerTrigger.disabled = stage === "dealing";
+  elements.providerTrigger.setAttribute(
+    "aria-label",
+    `${t("app.provider")}: ${selectedProvider?.label || t("app.provider")}`,
+  );
+  elements.providerTrigger.setAttribute("aria-expanded", String(providerMenuOpen));
+  elements.providerTrigger.innerHTML = `
+    <span class="provider-trigger-label">${escapeHtml(selectedProvider?.label || t("app.provider"))}</span>
+    <span class="provider-chevron" aria-hidden="true"></span>
+  `;
+  elements.providerMenu.hidden = !providerMenuOpen || !hasProviders;
+  elements.providerMenu.innerHTML = providerOptions
+    .map(
+      (provider) => `
+        <button
+          class="provider-option"
+          type="button"
+          role="option"
+          data-provider-id="${escapeAttribute(provider.id)}"
+          aria-selected="${provider.id === selectedProviderId}"
+        >
+          <span class="provider-check" aria-hidden="true">✓</span>
+          <span>${escapeHtml(provider.label)}</span>
+        </button>
+      `,
+    )
+    .join("");
+}
+
+function currentProvider() {
+  return providerOptions.find((provider) => provider.id === selectedProviderId) || providerOptions[0];
+}
+
+function closeProviderMenu() {
+  if (!providerMenuOpen) return;
+  providerMenuOpen = false;
+  renderProviders();
 }
 
 function waitForMinimumDealTime(startedAt) {
@@ -908,6 +1036,7 @@ function renderActions() {
   elements.quickRedrawButton.hidden = stage !== "ready";
   elements.quickRedrawButton.disabled = stage !== "ready";
   elements.quickRedrawButton.textContent = t("app.quickRedraw");
+  renderProviders();
 }
 
 function renderCards() {
@@ -1245,6 +1374,10 @@ function escapeHtml(value) {
       "'": "&#39;",
     }[character];
   });
+}
+
+function escapeAttribute(value) {
+  return escapeHtml(value);
 }
 
 function normalizePatternKey(value) {

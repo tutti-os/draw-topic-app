@@ -11,11 +11,12 @@ cards to reveal answers one by one.
 - The first screen shows the DecideDeck title, five unrevealed floating cards,
   and a large bottom question input.
 - A user enters a question and clicks the draw button.
-- The app enters a dealing state and requests card answers from a Tutti agent
-  through the runtime `$TUTTI_CLI` contract.
-- Dealing has a minimum visible duration of 3 seconds. If card generation does
-  not finish within 10 seconds, the request times out and the app shows a retry
-  prompt without revealing cards.
+- The app enters a dealing state, detects available Claude Code and Codex
+  providers through `@tutti-os/agent-acp-kit`, and requests card answers from
+  the selected provider.
+- Dealing has a minimum visible duration of 3 seconds. If agent generation does
+  not finish within 180 seconds, the server falls back to local card answers.
+  The browser request waits up to 210 seconds so it can receive that fallback.
 - Card dot-matrix artwork stays stable while the user types, animates only
   during dealing as a loading effect, then freezes into meaningful glyphs
   selected from the agent result or semantic fallback.

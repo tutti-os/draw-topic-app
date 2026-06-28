@@ -7,6 +7,7 @@
   "app.drawWithInput": "Draw one",
   "app.answer": "Answer",
   "app.choice": "Choice",
+  "app.provider": "Agent provider",
   "app.dealingHint": "A good idea is getting close",
   "app.dealingHints": [
     "A good idea is getting close",

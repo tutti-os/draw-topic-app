@@ -6,9 +6,13 @@
   "packageManager": "pnpm@10.11.0",
   "type": "module",
   "scripts": {
-    "dev": "python3 scripts/dev-server.py",
+    "dev": "node runtime/server.mjs",
     "check:i18n": "node scripts/check-i18n.mjs",
+    "check:runtime": "node scripts/check-runtime.mjs",
     "package:tutti": "node scripts/package-tutti-app.mjs",
-    "test": "pnpm check:i18n && pnpm package:tutti"
+    "test": "pnpm check:i18n && pnpm check:runtime && pnpm package:tutti"
+  },
+  "dependencies": {
+    "@tutti-os/agent-acp-kit": "^0.2.4"
   }
 }

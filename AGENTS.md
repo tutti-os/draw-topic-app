@@ -27,7 +27,7 @@ This repository is a standalone Tutti workspace app.
 - `src/` owns the browser UI.
 - `locales/` owns manifest metadata localization and in-app copy.
 - `public/` owns static assets used by source and packaged builds.
-- `runtime/` owns the packaged Python HTTP server and bootstrap script.
+- `runtime/` owns the packaged Node HTTP server, agent runtime, and bootstrap script.
 - `.tutti/dev-app/` is the Load unpacked local debug wrapper.
 - `scripts/package-tutti-app.mjs` builds `build/tutti-app/package`.
 
@@ -40,9 +40,11 @@ or framework dependencies unless a future requirement truly needs them.
   `TUTTI_APP_PORT`; it must fail if the port is missing.
 - Runtime package files are read-only.
 - Browser state uses `localStorage`.
-- `POST /api/draw` calls `$TUTTI_CLI` to request Tutti agent-generated card
-  answers when the app runs inside Tutti. It must keep a local fallback for
-  ordinary browser development and agent/runtime failures.
+- `GET /api/providers` detects available Claude Code and Codex providers through
+  `@tutti-os/agent-acp-kit`.
+- `POST /api/draw` uses `@tutti-os/agent-acp-kit` from the Node server for
+  app-owned local agent execution. It must keep a local fallback for ordinary
+  browser development and agent/runtime failures.
 - If backend persistence is added later, write durable state only under
   `$TUTTI_APP_DATA_DIR`.
 - Read locale from `window.tuttiExternal.app` with browser locale fallback.
@@ -54,6 +56,7 @@ Before finishing changes, run:
 
 ```bash
 pnpm check:i18n
+pnpm check:runtime
 pnpm package:tutti
 ```
 
