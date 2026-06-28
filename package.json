@@ -1,0 +1,14 @@
+{
+  "name": "draw-topic-app",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "packageManager": "pnpm@10.11.0",
+  "type": "module",
+  "scripts": {
+    "dev": "python3 scripts/dev-server.py",
+    "check:i18n": "node scripts/check-i18n.mjs",
+    "package:tutti": "node scripts/package-tutti-app.mjs",
+    "test": "pnpm check:i18n && pnpm package:tutti"
+  }
+}

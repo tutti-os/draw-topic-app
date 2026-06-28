@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>抽张主意</title>
+    <link rel="icon" href="/icon.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="today-shell">
+      <section class="card-table" id="card-table" aria-label="抽张主意选项">
+        <article class="choice-card card-a" data-choice="A"></article>
+        <article class="choice-card card-b is-featured" data-choice="B"></article>
+        <article class="choice-card card-c" data-choice="C"></article>
+        <article class="choice-card card-d" data-choice="D"></article>
+        <article class="choice-card card-e" data-choice="E"></article>
+      </section>
+
+      <div class="prompt-stack">
+        <p class="prompt-status" id="draw-status" aria-live="polite">
+          <span id="draw-status-text"></span>
+          <button class="quick-redraw" id="quick-redraw-button" type="button"></button>
+        </p>
+        <form class="prompt-bar" id="prompt-form">
+          <input id="question-input" autocomplete="off" data-i18n-placeholder="app.placeholder" />
+          <div class="prompt-actions">
+            <button id="draw-button" type="submit" data-i18n="app.draw"></button>
+          </div>
+        </form>
+      </div>
+    </main>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
