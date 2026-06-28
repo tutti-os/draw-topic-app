@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+set -eu
+
+: "${TUTTI_APP_PACKAGE_DIR:?}"
+: "${TUTTI_APP_PORT:?}"
+: "${TUTTI_APP_RUNTIME_DIR:?}"
+: "${TUTTI_APP_DATA_DIR:?}"
+: "${TUTTI_APP_LOG_DIR:?}"
+: "${TUTTI_APP_PYTHON:?}"
+
+export TUTTI_APP_HOST="${TUTTI_APP_HOST:-127.0.0.1}"
+
+mkdir -p "$TUTTI_APP_RUNTIME_DIR" "$TUTTI_APP_DATA_DIR" "$TUTTI_APP_LOG_DIR"
+exec "$TUTTI_APP_PYTHON" "$TUTTI_APP_PACKAGE_DIR/server.py"

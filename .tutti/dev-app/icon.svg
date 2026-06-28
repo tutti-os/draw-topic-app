@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="抽张主意">
+  <rect width="128" height="128" rx="28" fill="#f6f1e8"/>
+  <rect x="29" y="21" width="58" height="82" rx="14" fill="#20242c" transform="rotate(-8 58 62)"/>
+  <rect x="41" y="25" width="58" height="82" rx="14" fill="#fffdf8" stroke="#20242c" stroke-width="4" transform="rotate(7 70 66)"/>
+  <circle cx="70" cy="55" r="14" fill="#f4c542"/>
+  <path d="M54 84c10-15 23-15 33 0" fill="none" stroke="#2f80ed" stroke-width="7" stroke-linecap="round"/>
+  <path d="M62 37l5-10 5 10 10 5-10 5-5 10-5-10-10-5z" fill="#27ae60"/>
+</svg>

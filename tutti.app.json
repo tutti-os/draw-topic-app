@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "tutti.app.manifest.v1",
+  "appId": "draw-topic-app",
+  "version": "0.1.0",
+  "name": "抽张主意",
+  "description": "把纠结的问题交给五张灵感卡，在轻松翻牌中看见下一步。",
+  "icon": {
+    "type": "asset",
+    "src": "icon.png"
+  },
+  "runtime": {
+    "bootstrap": "bootstrap.sh",
+    "healthcheckPath": "/healthz"
+  },
+  "window": {
+    "minimizeBehavior": "keep-mounted",
+    "minWidth": 420,
+    "minHeight": 560
+  },
+  "launch": {
+    "mode": "workspace-open"
+  },
+  "author": {
+    "name": "Tutti"
+  },
+  "tags": ["抽卡", "选择", "答案"],
+  "localizationInfo": {
+    "defaultLocale": "zh-CN",
+    "additionalLocales": [
+      {
+        "locale": "en",
+        "file": "locales/en/manifest.json"
+      }
+    ]
+  }
+}
