@@ -10,8 +10,8 @@ and local debug metadata.
 - `bootstrap.sh` is the runtime entrypoint and takes no arguments.
 - The script requires `TUTTI_APP_PORT` and uses `TUTTI_APP_HOST`, defaulting the
   host to `127.0.0.1`.
-- The source app is served by `scripts/dev-server.py`.
-- The wrapper uses `$TUTTI_APP_PYTHON`; do not replace it with system Python.
+- The source app is served by `runtime/server.mjs`.
+- The wrapper uses `$TUTTI_APP_NODE`; do not replace it with system Node.
 
 ## Editing
 

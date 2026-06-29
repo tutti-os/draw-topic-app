@@ -7,8 +7,8 @@ choice cards, then click cards yourself to reveal playful answers one by one.
 ## Features
 
 - Question input with an idle state matching the reference prompt bar.
-- Dealing state that calls the Tutti runtime agent protocol through
-  `$TUTTI_CLI` when available.
+- Dealing state that detects Claude Code and Codex through
+  `@tutti-os/agent-acp-kit`, then uses the selected available provider.
 - User-controlled reveal: click a card to flip only that card.
 - Image-viewer-style movement: the clicked card slides into the main position
   while the others move aside.
@@ -43,8 +43,9 @@ The package is written to:
 build/tutti-app/package
 ```
 
-The package contains `tutti.app.json`, `bootstrap.sh`, `server.py`,
-`card_agent.py`, static assets, icon, and localized metadata.
+The package contains `tutti.app.json`, `bootstrap.sh`, `server.mjs`,
+`card-agent.mjs`, packaged npm dependencies, static assets, icon, and localized
+metadata.
 
 ## Release
 

@@ -1,4 +1,4 @@
-import { chmod, cp, mkdir, rm, writeFile } from "node:fs/promises";
+import { chmod, cp, mkdir, readFile, realpath, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -21,12 +21,13 @@ await cp(path.join(rootDir, "locales"), path.join(packageRoot, "locales"), {
 await cp(path.join(rootDir, "src"), path.join(packageRoot, "static"), {
   recursive: true,
 });
-await cp(path.join(rootDir, "runtime", "server.py"), path.join(packageRoot, "server.py"));
-await cp(path.join(rootDir, "runtime", "card_agent.py"), path.join(packageRoot, "card_agent.py"));
+await cp(path.join(rootDir, "runtime", "server.mjs"), path.join(packageRoot, "server.mjs"));
+await cp(path.join(rootDir, "runtime", "card-agent.mjs"), path.join(packageRoot, "card-agent.mjs"));
 await cp(
   path.join(rootDir, "runtime", "bootstrap.sh"),
   path.join(packageRoot, "bootstrap.sh"),
 );
+await copyDependencyClosure("@tutti-os/agent-acp-kit");
 
 await writeFile(
   path.join(packageRoot, "PACKAGE.md"),
@@ -35,10 +36,11 @@ await writeFile(
     "",
     "This is the generated Tutti workspace app package.",
     "",
-    "- `bootstrap.sh` starts `server.py` through `$TUTTI_APP_PYTHON`.",
+    "- `bootstrap.sh` starts `server.mjs` through `$TUTTI_APP_NODE`.",
     "- `/healthz` is the runtime healthcheck.",
-    "- `card_agent.py` calls `$TUTTI_CLI` or Codex CLI for generation of five choice cards with local fallback.",
+    "- `card-agent.mjs` uses `@tutti-os/agent-acp-kit` to detect and run Claude Code or Codex, with local fallback.",
     "- `static/` contains the browser app.",
+    "- `node_modules/` contains the packaged runtime dependency closure.",
     "- `icon.png` and `icon.svg` contain the app icon assets.",
     "- `locales/` contains manifest metadata and in-app copy.",
     "",
@@ -48,3 +50,50 @@ await writeFile(
 await chmod(path.join(packageRoot, "bootstrap.sh"), 0o755);
 
 console.log(`Tutti app package written to ${packageRoot}`);
+
+async function copyDependencyClosure(rootPackageName) {
+  const copied = new Set();
+  await copyPackage(rootPackageName, rootDir);
+
+  async function copyPackage(packageName, fromDir) {
+    if (copied.has(packageName)) return;
+    const sourceDir = await resolvePackageDir(packageName, fromDir);
+    const packageJson = JSON.parse(await readFile(path.join(sourceDir, "package.json"), "utf8"));
+    copied.add(packageName);
+
+    const destinationDir = path.join(packageRoot, "node_modules", ...packageName.split("/"));
+    await mkdir(path.dirname(destinationDir), { recursive: true });
+    await rm(destinationDir, { recursive: true, force: true });
+    await cp(sourceDir, destinationDir, {
+      recursive: true,
+      dereference: true,
+      filter: (source) => shouldCopyPackagePath(packageName, path.relative(sourceDir, source)),
+    });
+
+    for (const dependency of Object.keys(packageJson.dependencies || {})) {
+      await copyPackage(dependency, sourceDir);
+    }
+  }
+}
+
+function shouldCopyPackagePath(packageName, relativePath) {
+  const parts = relativePath.split(path.sep);
+  if (parts.includes("node_modules")) return false;
+  if (packageName !== "@anthropic-ai/claude-agent-sdk") return true;
+  return relativePath !== "cli.js" && parts[0] !== "vendor";
+}
+
+async function resolvePackageDir(packageName, fromDir) {
+  const parts = packageName.split("/");
+  for (const base of [fromDir, rootDir]) {
+    let directory = base;
+    while (directory !== path.dirname(directory)) {
+      try {
+        return await realpath(path.join(directory, "node_modules", ...parts));
+      } catch {
+        directory = path.dirname(directory);
+      }
+    }
+  }
+  throw new Error(`Cannot resolve package dependency ${packageName}`);
+}

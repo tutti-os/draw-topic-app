@@ -14,7 +14,8 @@ fi
 APP_HOST="${TUTTI_APP_HOST:-127.0.0.1}"
 PROJECT_ROOT="$(cd "${TUTTI_APP_PACKAGE_DIR:-$(dirname "${BASH_SOURCE[0]}")}/../.." && pwd)"
 
-: "${TUTTI_APP_PYTHON:?TUTTI_APP_PYTHON is required}"
+: "${TUTTI_APP_NODE:?TUTTI_APP_NODE is required}"
 
 export TUTTI_APP_HOST="$APP_HOST"
-exec "$TUTTI_APP_PYTHON" "$PROJECT_ROOT/scripts/dev-server.py"
+export DRAW_TOPIC_PROJECT_ROOT="$PROJECT_ROOT"
+exec "$TUTTI_APP_NODE" "$PROJECT_ROOT/runtime/server.mjs"

@@ -7,6 +7,7 @@
   "app.drawWithInput": "抽一张",
   "app.answer": "答案",
   "app.choice": "选项",
+  "app.provider": "Agent 执行方式",
   "app.dealingHint": "一个好主意正在靠近",
   "app.dealingHints": [
     "一个好主意正在靠近",
