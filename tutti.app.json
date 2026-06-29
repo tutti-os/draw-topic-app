@@ -20,8 +20,16 @@
   "launch": {
     "mode": "workspace-open"
   },
-  "author": {
-    "name": "Tutti"
+  "authors": [
+    {
+      "name": "dengbiao",
+      "avatarUrl": "https://github.com/dengbiao.png",
+      "url": "https://github.com/dengbiao"
+    }
+  ],
+  "source": {
+    "type": "github",
+    "url": "https://github.com/tutti-os/draw-topic-app"
   },
   "tags": ["抽卡", "选择", "答案"],
   "localizationInfo": {
